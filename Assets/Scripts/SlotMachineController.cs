@@ -55,6 +55,7 @@ public class SlotMachineController : MonoBehaviour
     [SerializeField] private AudioClip sfxSpin;
     [SerializeField] private AudioClip sfxWin;
     [SerializeField] private AudioClip sfxLose;
+    [SerializeField] private AudioClip sfxJackpot;
 
     // ── EVENTOS ───────────────────────────────────────────────────
     [Header("── Eventos opcionales ──")]
@@ -147,10 +148,22 @@ public class SlotMachineController : MonoBehaviour
             _credits += payout;
             UpdateCreditsUI();
             OnWin?.Invoke(payout);
-            PlaySound(sfxWin);
-            ShowResult($"¡GANASTE!\n+{payout} fichas", Color.yellow);
+
+            if (IsJackpot(result))
+            {
+                PlaySound(sfxJackpot);
+                ShowResult($"🎰 JACKPOT! 🎰\n+{payout} fichas", Color.yellow);
+            }
+            else
+            {
+                PlaySound(sfxWin);
+                ShowResult($"¡GANASTE!\n+{payout} fichas", Color.yellow);
+            }
+
             Debug.Log($"[Slot] GANÓ +{payout} | Saldo: {_credits}");
         }
+
+
         else
         {
             OnLose?.Invoke();
@@ -204,6 +217,17 @@ public class SlotMachineController : MonoBehaviour
     ///   2 iguales → apuesta × (multiplicador / 4)
     ///   sin combinación → 0
     /// </summary>
+
+    private bool IsJackpot(int[] symbols)
+    {
+        if (symbols == null || symbols.Length != 4)
+            return false;
+
+        return symbols[0] == symbols[1] &&
+               symbols[1] == symbols[2] &&
+               symbols[2] == symbols[3];
+    }
+
     private int CalculatePayout(int[] symbols)
     {
         if (symbols == null || symbols.Length != 4)
