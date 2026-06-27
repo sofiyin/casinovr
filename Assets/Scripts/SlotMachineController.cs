@@ -78,6 +78,8 @@ public class SlotMachineController : MonoBehaviour
         UpdateCreditsUI();
         HideResultText();
         CheckSetup();
+        if (SessionManager.Instance != null)
+            SessionManager.Instance.StartSession(startingCredits);
     }
 
     // =============================================================
@@ -149,7 +151,13 @@ public class SlotMachineController : MonoBehaviour
             UpdateCreditsUI();
             OnWin?.Invoke(payout);
 
-            if (IsJackpot(result))
+            bool jackpot = IsJackpot(result);
+
+            // ← AGREGAR
+            if (SessionManager.Instance != null)
+                SessionManager.Instance.RegisterSpin(betPerSpin, payout, jackpot);
+
+            if (jackpot)
             {
                 PlaySound(sfxJackpot);
                 ShowResult($"🎰 JACKPOT! 🎰\n+{payout} fichas", Color.yellow);
@@ -162,13 +170,16 @@ public class SlotMachineController : MonoBehaviour
 
             Debug.Log($"[Slot] GANÓ +{payout} | Saldo: {_credits}");
         }
-
-
         else
         {
             OnLose?.Invoke();
             PlaySound(sfxLose);
             ShowResult("Inténtalo\nde nuevo", Color.white);
+
+            // ← AGREGAR
+            if (SessionManager.Instance != null)
+                SessionManager.Instance.RegisterSpin(betPerSpin, 0, false);
+
             Debug.Log($"[Slot] Perdió | Saldo: {_credits}");
         }
 
